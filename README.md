@@ -1,10 +1,10 @@
 # Music and You: Personality Prediction from Spotify Listening Behavior
 
-A research project investigating the relationship between music listening patterns and personality traits using machine learning and naturalistic Spotify data.
+A research project investigating the relationship between music listening patterns and personality traits using machine learning and naturalistic streaming data from multiple music platforms.
 
 ## Project Overview
 
-This project aims to predict Big Five personality traits (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism) from users' Spotify listening behavior, addressing key gaps in the music psychology and personality computing literature.
+This project aims to predict Big Five personality traits (Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism) from users' music listening behavior across multiple streaming platforms, addressing key gaps in the music psychology and personality computing literature.
 
 ### Key Features
 
@@ -23,14 +23,16 @@ This project aims to predict Big Five personality traits (Openness, Conscientiou
 ## Technical Architecture
 
 ### MVP Components
-- **Data Ingestion**: Spotify OAuth + 6-month listening history + audio features
+
+- **Data Ingestion**: Multi-platform support (Spotify, YouTube Music, Last.fm) + unified feature extraction
 - **Survey Module**: TIPI personality assessment + optional empathy-systemizing scales
-- **Feature Engineering**: Comprehensive acoustic, temporal, and behavioral metrics
+- **Feature Engineering**: Comprehensive acoustic, temporal, and behavioral metrics across platforms
 - **Modeling**: Ridge regression and Random Forest multi-target regressors
 - **Evaluation**: 5-fold cross-validation with robust uncertainty quantification
 - **Explainability**: SHAP values with human-readable explanations
 
 ### Success Metrics
+
 - Target: r ≥ 0.20 for Openness or Extraversion prediction
 - Sample size: ~200 users (powered for expected modest effect sizes)
 - Temporal validation: Features from pre-survey listening only
@@ -38,6 +40,7 @@ This project aims to predict Big Five personality traits (Openness, Conscientiou
 ## Research Foundation
 
 This project is built on comprehensive literature review covering:
+
 - Structural models of music preference (STOMP, MUSIC)
 - Personality trait associations and Big Five correlations
 - Cognitive styles, empathy, and systemizing theories
@@ -64,15 +67,15 @@ See [`literature.MD`](literature.MD) for the complete literature review and rese
 
 ## Getting Started
 
-*[Development in progress]*
+_[Development in progress]_
 
 ## License
 
-*[To be determined]*
+_[To be determined]_
 
 ## Citation
 
-*[Research paper in preparation]*
+_[Research paper in preparation]_
 
 ---
 

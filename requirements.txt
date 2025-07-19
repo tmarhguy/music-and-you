@@ -1,0 +1,99 @@
+# Core Data Science & ML
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+scipy>=1.10.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.15.0
+
+# Machine Learning Extensions
+xgboost>=1.7.0
+lightgbm>=4.0.0
+catboost>=1.2.0
+shap>=0.42.0
+optuna>=3.3.0
+imbalanced-learn>=0.11.0
+
+# Deep Learning (for future extensions)
+torch>=2.0.0
+transformers>=4.30.0
+
+# Music & Audio Processing
+librosa>=0.10.0
+pydub>=0.25.0
+mutagen>=1.47.0
+spotipy>=2.23.0
+pylast>=5.2.0
+
+# Data Storage & Processing
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+redis>=4.6.0
+h5py>=3.9.0
+pyarrow>=12.0.0
+
+# Web Framework & APIs
+fastapi>=0.100.0
+uvicorn>=0.22.0
+pydantic>=2.0.0
+httpx>=0.24.0
+aiohttp>=3.8.0
+google-api-python-client>=2.95.0
+youtube-dl>=2021.12.17
+
+# Natural Language Processing (for lyrics)
+nltk>=3.8.0
+spacy>=3.6.0
+textblob>=0.17.0
+langdetect>=1.0.9
+
+# Statistics & Research
+statsmodels>=0.14.0
+pingouin>=0.5.3
+pymc>=5.6.0
+arviz>=0.15.0
+
+# Experiment Tracking & MLOps
+mlflow>=2.5.0
+wandb>=0.15.0
+dvc>=3.0.0
+great-expectations>=0.17.0
+
+# Configuration & Environment
+python-dotenv>=1.0.0
+pyyaml>=6.0
+hydra-core>=1.3.0
+omegaconf>=2.3.0
+
+# Development & Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.5.0
+pre-commit>=3.3.0
+
+# Documentation
+sphinx>=7.1.0
+sphinx-rtd-theme>=1.3.0
+jupyter>=1.0.0
+jupyterlab>=4.0.0
+
+# Utilities
+tqdm>=4.65.0
+click>=8.1.0
+python-dateutil>=2.8.0
+pytz>=2023.3
+requests>=2.31.0
+beautifulsoup4>=4.12.0
+
+# Deployment
+docker>=6.1.0
+gunicorn>=21.2.0
+
+# Privacy & Security (for federated learning)
+opacus>=1.4.0
+cryptography>=41.0.0

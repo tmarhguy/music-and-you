@@ -1,0 +1,67 @@
+# Music and You Configuration
+
+# Database settings
+database:
+  host: localhost
+  port: 5432
+  database: music_and_you
+  username: postgres
+  password: ${DB_PASSWORD}
+
+# API credentials (use environment variables in production)
+api:
+  spotify_client_id: ${SPOTIFY_CLIENT_ID}
+  spotify_client_secret: ${SPOTIFY_CLIENT_SECRET}
+  spotify_redirect_uri: http://localhost:8080/callback
+
+  lastfm_api_key: ${LASTFM_API_KEY}
+  lastfm_secret: ${LASTFM_SECRET}
+
+  youtube_api_key: ${YOUTUBE_API_KEY}
+
+# Model configuration
+model:
+  random_state: 42
+  test_size: 0.2
+  cv_folds: 5
+  target_correlation: 0.20
+
+  # Ridge regression
+  ridge_alpha: 1.0
+
+  # Random Forest
+  rf_n_estimators: 100
+  rf_max_depth: null
+
+  # Feature selection
+  feature_selection: true
+  max_features: null
+
+# General settings
+log_level: INFO
+cache_ttl: 3600 # 1 hour
+data_dir: data/
+
+# Feature engineering
+features:
+  acoustic:
+    normalize: true
+    outlier_detection: true
+
+  temporal:
+    session_threshold_minutes: 30
+    active_hours_only: false
+
+  behavioral:
+    min_plays_for_artist: 3
+    diversity_window_days: 30
+
+  lyrical:
+    language_detection: true
+    sentiment_analysis: true
+
+# Privacy settings
+privacy:
+  data_retention_days: 365
+  anonymize_user_data: true
+  local_processing_only: false

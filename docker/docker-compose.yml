@@ -1,0 +1,123 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: music_and_you
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Music and You web application
+  web:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: development
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=music_and_you
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - REDIS_URL=redis://redis:6379
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - LASTFM_API_KEY=${LASTFM_API_KEY}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - LOG_LEVEL=INFO
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - data_volume:/app/data
+      - models_volume:/app/models
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "python", "-m", "music_and_you.cli", "health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Jupyter notebook server for research
+  jupyter:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: development
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=music_and_you
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+      - data_volume:/app/data
+      - models_volume:/app/models
+    depends_on:
+      - db
+      - redis
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+
+  # Worker for background tasks
+  worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: development
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=music_and_you
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - REDIS_URL=redis://redis:6379
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - LASTFM_API_KEY=${LASTFM_API_KEY}
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+    volumes:
+      - .:/app
+      - data_volume:/app/data
+      - models_volume:/app/models
+    depends_on:
+      - db
+      - redis
+    command: python -m music_and_you.worker
+
+volumes:
+  postgres_data:
+  redis_data:
+  data_volume:
+  models_volume:
