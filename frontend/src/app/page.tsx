@@ -1,156 +1,229 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+interface SpotifyUser {
+  display_name?: string;
+  user_id: string;
+  email?: string;
+  followers?: number;
+  profile_image?: string;
+}
 
 export default function HomePage() {
-  const handleGetStarted = () => {
-    console.log('Getting started...');
+  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<SpotifyUser | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is already authenticated
+    const checkAuth = async () => {
+      const userId = localStorage.getItem('spotify_user_id');
+      const token = localStorage.getItem('spotify_access_token');
+      
+      if (userId && token) {
+        try {
+          const response = await fetch(`http://localhost:8000/api/user/profile?user_id=${userId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setUser(data.profile);
+            // Also store for the data page
+            localStorage.setItem('spotifyUser', JSON.stringify(data.profile));
+          } else {
+            // Clear invalid tokens
+            localStorage.removeItem('spotify_user_id');
+            localStorage.removeItem('spotify_access_token');
+            localStorage.removeItem('spotifyUser');
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+        }
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleSpotifyLogin = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:8000/api/auth/spotify/login');
+      const data = await response.json();
+      
+      if (data.auth_url) {
+        // Store state for verification
+        localStorage.setItem('spotify_auth_state', data.state);
+        // Redirect to Spotify authorization
+        window.location.href = data.auth_url;
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      setIsLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    const userId = localStorage.getItem('spotify_user_id');
+    if (userId) {
+      try {
+        await fetch(`http://localhost:8000/api/auth/logout?user_id=${userId}`, {
+          method: 'DELETE'
+        });
+      } catch (error) {
+        console.error('Logout failed:', error);
+      }
+    }
+    
+    // Clear local storage
+    localStorage.removeItem('spotify_user_id');
+    localStorage.removeItem('spotify_access_token');
+    localStorage.removeItem('spotify_auth_state');
+    localStorage.removeItem('spotifyUser');
+    setUser(null);
+  };
+
+  const testSpotifyData = () => {
+    console.log('View Data button clicked');
+    const userProfile = localStorage.getItem('spotifyUser');
+    const userId = localStorage.getItem('spotify_user_id');
+    console.log('User profile in localStorage:', userProfile);
+    console.log('User ID:', userId);
+    
+    if (!userProfile || !userId) {
+      alert('User data not found. Please reconnect to Spotify.');
+      return;
+    }
+    
+    router.push('/data');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10" />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Logo/Brand */}
-            <div className="flex items-center justify-center mb-8">
-              <div className="w-12 h-12 bg-primary-600 rounded-lg mr-4"></div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
-                Music and You
-              </h1>
-            </div>
-
-            {/* Main Headline */}
-            <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Discover Your Personality Through{' '}
-              <span className="bg-gradient-to-r from-primary-600 to-purple-600 bg-clip-text text-transparent">
-                Music
-              </span>
-            </h2>
-
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Connect your music streaming accounts and unlock insights about your personality 
-              using cutting-edge machine learning and decades of music psychology research.
-            </p>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <button
-                onClick={handleGetStarted}
-                className="bg-green-500 hover:bg-green-600 text-white font-medium px-8 py-4 text-lg rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-              >
-                🎵 Connect with Spotify
-              </button>
-              <button
-                onClick={() => console.log('Demo clicked')}
-                className="border-2 border-primary-600 text-primary-600 hover:bg-primary-50 font-medium px-8 py-4 text-lg rounded-lg transition-colors duration-200"
-              >
-                🧠 View Demo
-              </button>
-            </div>
-
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-gray-500">
-              <div className="flex items-center">
-                <span className="mr-2">🔒</span>
-                Privacy-First
-              </div>
-              <div className="flex items-center">
-                <span className="mr-2">👥</span>
-                Research-Backed
-              </div>
-              <div className="flex items-center">
-                <span className="mr-2">✨</span>
-                Free to Use
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-6xl font-bold text-white mb-6">
+            Music & You
+          </h1>
+          <p className="text-xl text-purple-200 mb-8 max-w-2xl mx-auto">
+            Discover your personality through your music taste. Connect your Spotify account 
+            to get insights about yourself based on your listening habits.
+          </p>
         </div>
-      </div>
 
-      {/* Features Section */}
-      <div className="py-12 sm:py-16 lg:py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              How It Works
-            </h3>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Our research-grounded approach combines your music listening data with 
-              validated personality psychology to provide meaningful insights.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              {
-                icon: '🎵',
-                title: 'Multi-Platform Music Analysis',
-                description: 'Connect your Spotify, YouTube Music, and Last.fm accounts for comprehensive analysis.',
-              },
-              {
-                icon: '🧠',
-                title: 'Big Five Personality Prediction',
-                description: 'Discover your personality traits using research-backed machine learning models.',
-              },
-              {
-                icon: '✨',
-                title: 'Detailed Music Insights',
-                description: 'Explore your listening patterns, favorite genres, and musical diversity metrics.',
-              },
-              {
-                icon: '🔒',
-                title: 'Privacy-First Design',
-                description: 'Your data stays secure with local processing options and full user control.',
-              },
-              {
-                icon: '👥',
-                title: 'Research-Grounded',
-                description: 'Built on 20+ years of music psychology research and validated approaches.',
-              },
-              {
-                icon: '📈',
-                title: 'Continuous Learning',
-                description: 'Our models improve over time while respecting your privacy.',
-              },
-            ].map((feature, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-300"
+        <div className="max-w-4xl mx-auto">
+          {!user ? (
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 text-center">
+              <div className="text-6xl mb-6">🎵</div>
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Get Started
+              </h2>
+              <p className="text-purple-200 mb-8">
+                Connect your Spotify account to analyze your music personality
+              </p>
+              <button
+                onClick={handleSpotifyLogin}
+                disabled={isLoading}
+                className="bg-green-500 hover:bg-green-600 disabled:bg-gray-500 text-white font-bold py-4 px-8 rounded-full text-lg transition-colors duration-200 inline-flex items-center gap-3"
               >
-                <div className="text-4xl mb-4">
-                  {feature.icon}
+                {isLoading ? (
+                  <>
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    🎧 Connect to Spotify
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8">
+              <div className="text-center mb-8">
+                <div className="w-24 h-24 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center text-4xl">
+                  ✓
                 </div>
-                <h4 className="text-xl font-semibold text-gray-900 mb-3">
-                  {feature.title}
-                </h4>
-                <p className="text-gray-600 leading-relaxed">
-                  {feature.description}
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  Welcome, {user.display_name || user.user_id}!
+                </h2>
+                <p className="text-purple-200">
+                  Your Spotify account is connected
                 </p>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
 
-      {/* Footer CTA */}
-      <div className="py-12 sm:py-16 lg:py-20 bg-gradient-to-r from-primary-600 to-purple-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h3 className="text-3xl md:text-4xl font-bold mb-4">
-            Ready to Discover Your Musical Personality?
-          </h3>
-          <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-            Join thousands of users who have discovered fascinating insights about themselves 
-            through their music listening habits.
-          </p>
-          <button
-            onClick={handleGetStarted}
-            className="bg-white text-primary-600 hover:bg-gray-100 font-medium px-8 py-4 text-lg rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-          >
-            🎵 Get Started Free
-          </button>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white/5 rounded-xl p-6 text-center">
+                  <div className="text-3xl mb-3">📊</div>
+                  <h3 className="text-white font-semibold mb-2">Listening History</h3>
+                  <p className="text-purple-200 text-sm mb-4">View your recent tracks</p>
+                  <button
+                    onClick={testSpotifyData}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  >
+                    View Data
+                  </button>
+                </div>
+
+                <div className="bg-white/5 rounded-xl p-6 text-center">
+                  <div className="text-3xl mb-3">🧠</div>
+                  <h3 className="text-white font-semibold mb-2">Personality Analysis</h3>
+                  <p className="text-purple-200 text-sm mb-4">Get insights about yourself</p>
+                  <button
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    onClick={() => router.push('/analyze')}
+                  >
+                    Analyze
+                  </button>
+                </div>
+
+                <div className="bg-white/5 rounded-xl p-6 text-center">
+                  <div className="text-3xl mb-3">🎶</div>
+                  <h3 className="text-white font-semibold mb-2">Recommendations</h3>
+                  <p className="text-purple-200 text-sm mb-4">Discover new music</p>
+                  <button
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    onClick={() => alert('Recommendations coming soon!')}
+                  >
+                    Discover
+                  </button>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition-colors"
+                >
+                  Disconnect Spotify
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🎯</div>
+              <h3 className="text-xl font-semibold text-white mb-2">Personalized Insights</h3>
+              <p className="text-purple-200">
+                Get detailed analysis of your personality traits based on your music preferences
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl mb-4">📈</div>
+              <h3 className="text-xl font-semibold text-white mb-2">Data-Driven</h3>
+              <p className="text-purple-200">
+                Our analysis is based on scientific research linking music preferences to personality
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl mb-4">🔒</div>
+              <h3 className="text-xl font-semibold text-white mb-2">Privacy First</h3>
+              <p className="text-purple-200">
+                Your data is processed securely and never shared without your permission
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
