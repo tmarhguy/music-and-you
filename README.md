@@ -1,53 +1,303 @@
-# Music and You: Personality Analysis Through Music 🎵🧠
+# Music & You
 
-> **Live Application**: A full-stack web application that analyzes your personality through your Spotify listening habits using advanced music psychology research.
+A full-stack web application that predicts Big Five personality traits from Spotify and YouTube Music listening patterns using advanced machine learning and music psychology research.
 
-## 🚀 **What We've Built**
+## Table of Contents
 
-A complete personality analysis platform that connects to your Spotify account and provides insights into your Big Five personality traits based on your music preferences and listening behavior.
+- [Overview](#overview)
+- [Features](#features)
+- [Screenshots](#screenshots)
+- [Technology Stack](#technology-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [Installation](#installation)
+- [Usage](#usage)
+- [API Documentation](#api-documentation)
+- [Contributing](#contributing)
+- [Research Foundation](#research-foundation)
+- [License](#license)
 
-### ✨ **Key Features Implemented**
+## Overview
 
-- **🎧 Real Spotify Integration**: Full OAuth2 authentication with Spotify Web API
-- **📊 Comprehensive Data Analysis**: Unlimited music data collection and visualization
-- **🧠 Personality Analysis**: Advanced algorithms based on music psychology research
-- **💻 Modern Web Application**: Beautiful, responsive UI built with Next.js and React
-- **🔄 Real-time Processing**: Live analysis with progress tracking and confidence scoring
-- **📱 Mobile-Friendly**: Responsive design that works on all devices
+**What if your playlist could reveal your personality?**
 
-## 🛠 **Technical Stack**
+Music & You was born from a simple observation: as a Computer Engineering student who listens to everything from Tina Turner to André Rieu's classical performances, from Ghanaian Hilife to Lewis Capaldi, I noticed that my musical diversity was unusual among my Gen Z peers. This led to a fascinating question: **Is there a connection between the songs we choose and who we are?**
 
-### **Backend (Python)**
+Unlike static reports like Spotify Wrapped, Music & You provides real-time personality analysis that explores the deeper psychological patterns in your listening habits. The platform combines music psychology research with modern machine learning to offer educational insights into how your musical choices reflect your Big Five personality traits.
 
-- **FastAPI**: High-performance API server with automatic documentation
-- **Spotify Web API**: Real OAuth2 integration for music data access
-- **Advanced Analytics**: Music psychology algorithms for personality prediction
-- **Feature Engineering**: Acoustic, temporal, behavioral, and lyrical analysis
-- **Data Processing**: Pandas, NumPy for comprehensive music data analysis
+The application analyzes users' music listening patterns to predict personality traits (Openness, Conscientiousness, Extraversion, Agreeableness, and Neuroticism) while being transparent about limitations and respectful of cultural musical diversity.
 
-### **Frontend (Next.js/React)**
+## Features
 
-- **Next.js 14**: Modern React framework with TypeScript
-- **Tailwind CSS**: Beautiful, responsive styling
-- **Interactive UI**: Real-time progress tracking and data visualization
-- **Seamless Navigation**: Multi-page application with smooth user experience
+### Core Functionality
 
-### **Integration & Deployment**
+- **Spotify Integration**: Secure OAuth2 authentication and comprehensive data collection
+- **Personality Prediction**: Big Five trait analysis with confidence scoring
+- **Explainable AI**: Transparent results with detailed explanations using SHAP values
+- **Interactive Dashboard**: Real-time visualization of personality insights and music patterns
+- **Conversational Interface**: Chat-based exploration of personality results
 
-- **Real OAuth Flow**: Secure Spotify authentication
-- **CORS Configuration**: Proper cross-origin resource sharing
-- **Environment Management**: Secure credential handling
-- **Git Workflow**: Version control with GitHub integration
+### Advanced Features
 
-## 🎯 **Application Features**
+- **Temporal Analysis**: Track personality evolution over time
+- **Music Discovery**: Personalized recommendations based on personality insights
+- **Cultural Sensitivity**: Support for global music genres including Afrobeats, Hilife, K-pop, and regional music traditions
+- **Social Sharing**: Generate beautiful personality cards for social media
+- **Data Export**: Download comprehensive analysis results
 
-### **1. Spotify Authentication**
+### Technical Features
 
-- Secure OAuth2 flow with Spotify
-- User profile integration
-- Token management and refresh
+- **Real-time Processing**: Asynchronous analysis with progress tracking
+- **Rate Limiting**: Intelligent API usage optimization
+- **Error Handling**: Robust fallback mechanisms
+- **Mobile Responsive**: Cross-platform compatibility
 
-### **2. Music Data Collection**
+## Screenshots
+
+![Landing Page](screenshots/landing.png)
+_Landing page with Spotify authentication_
+
+![Dashboard](screenshots/dashboard.png)
+_Interactive personality analysis dashboard_
+
+![Chat Interface](screenshots/chat.png)
+_Conversational AI explaining personality insights_
+
+![Musical Personality Analysis](screenshots/musical-personality.png)
+_Musical personality traits and analysis results_
+
+## Technology Stack
+
+### Backend
+
+- **FastAPI**: High-performance Python web framework
+- **Pandas & NumPy**: Data processing and analysis
+- **scikit-learn**: Machine learning models
+- **SHAP**: Model explainability
+- **Spotipy**: Spotify Web API integration
+- **PostgreSQL**: Primary database (planned)
+- **Redis**: Caching layer (planned)
+
+### Frontend
+
+- **Next.js 14**: React framework with TypeScript
+- **Tailwind CSS**: Utility-first CSS framework
+- **Radix UI**: Accessible component library
+- **React Query**: Data fetching and state management
+- **Recharts**: Data visualization
+- **Framer Motion**: Animation library
+
+### Infrastructure
+
+- **Docker**: Containerization
+- **GitHub Actions**: CI/CD pipeline (planned)
+- **AWS**: Cloud deployment (planned)
+
+## Architecture
+
+```
+music-and-you/
+├── src/music_and_you/           # Python backend
+│   ├── api/                     # FastAPI application
+│   │   └── main.py             # API server with endpoints
+│   ├── data/                    # Data collection modules
+│   │   └── spotify_client.py   # Spotify API integration
+│   ├── features/                # Feature engineering
+│   │   ├── feature_pipeline.py # Main feature extraction
+│   │   ├── temporal_features.py# Time-based analysis
+│   │   └── lyrical_features.py # Lyrical content analysis
+│   ├── models/                  # ML models
+│   │   └── personality_predictor.py # Prediction algorithms
+│   └── utils/                   # Utility functions
+├── frontend/                    # Next.js frontend
+│   ├── src/
+│   │   ├── app/                # App router pages
+│   │   │   ├── page.tsx        # Landing page
+│   │   │   ├── analyze/        # Analysis results
+│   │   │   ├── data/           # Music data visualization
+│   │   │   └── auth/           # Authentication
+│   │   ├── components/         # React components
+│   │   │   ├── ChatWidget.tsx  # Conversational interface
+│   │   │   ├── PersonalityRadarChart.tsx
+│   │   │   └── AudioDNAChart.tsx
+│   │   └── lib/                # Utilities and hooks
+├── tests/                       # Test suites
+├── docs/                        # Documentation
+└── docker/                     # Docker configuration
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.9+
+- Node.js 18+
+- npm or yarn
+- Spotify Developer Account
+
+### Environment Setup
+
+1. **Create a Spotify App**:
+   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+   - Create a new app
+   - Note your Client ID and Client Secret
+   - Add redirect URI: `http://localhost:3002/auth/callback`
+
+## Installation
+
+### Backend Setup
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/tmarhguy/music-and-you.git
+   cd music-and-you
+   ```
+
+2. **Create and activate virtual environment**:
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+3. **Install dependencies**:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure environment variables**:
+
+   ```bash
+   cp .env.example .env
+   # Edit .env with your Spotify credentials
+   ```
+
+5. **Start the backend server**:
+   ```bash
+   cd src/music_and_you/api
+   python main.py
+   ```
+
+### Frontend Setup
+
+1. **Navigate to frontend directory**:
+
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies**:
+
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables**:
+
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your configuration
+   ```
+
+4. **Start the development server**:
+   ```bash
+   npm run dev
+   ```
+
+The application will be available at:
+
+- Frontend: `http://localhost:3002`
+- Backend API: `http://localhost:8003`
+- API Documentation: `http://localhost:8003/docs`
+
+## Usage
+
+### Basic Workflow
+
+1. **Authentication**: Connect your Spotify account through OAuth2
+2. **Data Collection**: The system automatically fetches your music data
+3. **Analysis**: Machine learning models process your listening patterns
+4. **Results**: View your personality insights through interactive dashboard
+5. **Exploration**: Use the chat interface to understand your results
+6. **Discovery**: Get personalized music recommendations
+
+### API Endpoints
+
+#### Authentication
+
+```http
+GET /auth/login          # Initiate Spotify OAuth
+GET /auth/callback       # Handle OAuth callback
+```
+
+#### Data Collection
+
+```http
+POST /analyze           # Start personality analysis
+GET /analysis/{id}      # Get analysis results
+```
+
+#### Chat Interface
+
+```http
+POST /chat              # Send message to AI assistant
+```
+
+### Example Usage
+
+```python
+import requests
+
+# Start analysis
+response = requests.post('http://localhost:8003/analyze',
+                        headers={'Authorization': 'Bearer YOUR_TOKEN'})
+
+# Get results
+analysis_id = response.json()['analysis_id']
+results = requests.get(f'http://localhost:8003/analysis/{analysis_id}')
+```
+
+## API Documentation
+
+Comprehensive API documentation is available at `/docs` when running the backend server. The documentation includes:
+
+- Interactive API explorer
+- Request/response schemas
+- Authentication requirements
+- Rate limiting information
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](docs/CONTRIBUTING.md) for details.
+
+## Documentation
+
+For detailed documentation, please visit the [`docs/`](docs/) directory:
+
+- [Contributing Guidelines](docs/CONTRIBUTING.md)
+- [Development Setup](docs/SETUP_VERIFICATION.md)
+- [Project Vision](docs/VISION_2025.md)
+- [Development Status](docs/DEVELOPMENT_STATUS.md)
+- [Project Structure](docs/PROJECT_STRUCTURE.md)
+
+### Development Setup
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass: `npm test` and `pytest`
+6. Submit a pull request
+
+### Code Style
+
+- Python: Follow PEP 8, use `black` for formatting
+- TypeScript: Follow project ESLint configuration
+- Commit messages: Use conventional commits format
+
+## Research Foundation
 
 - **Unlimited Liked Songs**: Fetch entire music library (300+ songs supported)
 - **Listening History**: Recent tracks and comprehensive playback data
@@ -94,9 +344,34 @@ music-and-you/
 └── [project configuration]
 ```
 
-## 🔬 **Research Foundation**
+This project emerged from personal curiosity about musical diversity and psychological patterns, built on validated research in music psychology:
 
-This project is built on comprehensive literature review covering:
+**Foundation Research:**
+
+- **Nave et al. (2018)**: "Musical preferences predict personality" - Large-scale Facebook study
+- **Spotify Research (2020)**: "Just The Way You Are: Music Listening and Personality"
+- **EURASIP Journal (2022)**: "Beyond the Big Five for music recommendation"
+- **Greenberg et al. (2016)**: "Musical preferences are linked to cognitive styles"
+
+**Personal Motivation:**
+As someone who rotates between Tina Turner, André Rieu, Afrobeats, and Hilife in a single listening session, I wanted to understand whether musical diversity itself might be a personality indicator. This project explores both established research and new questions about cultural musical preferences.
+
+**Technical Implementation:**
+The personality prediction models use 35+ engineered features across multiple dimensions:
+
+- **Acoustic Features**: Energy, valence, danceability, tempo
+- **Temporal Patterns**: Listening consistency, evolution analysis
+- **Behavioral Metrics**: Diversity, preferences, listening habits
+- **Cultural Features**: Genre diversity, cross-cultural musical exploration
+- **Psychological Validation**: Cross-trait correlations, stability checks
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Music & You** - Transforming self-discovery through music psychology and AI.
 
 - **Structural Models**: STOMP and MUSIC frameworks for music preference
 - **Personality Psychology**: Big Five trait associations with music preferences
@@ -141,7 +416,7 @@ npm install
 
 ```bash
 # Copy example environment file
-cp config/.env.example .env
+cp .env.example .env
 # Add your Spotify credentials to .env
 ```
 
@@ -245,7 +520,7 @@ This project is for research and educational purposes. Please respect Spotify's 
 
 **🎵 Discover your musical personality today!** Connect your Spotify account and unlock insights about yourself through the music you love.
 
-See [`literature.MD`](literature.MD) for the complete literature review and research framework.
+See [`RESEARCH_FOUNDATION.md`](RESEARCH_FOUNDATION.md) for the complete research background and theoretical framework.
 
 ## Planned Extensions
 
@@ -276,4 +551,4 @@ _[Research paper in preparation]_
 
 ---
 
-**Note**: This is an active research project. The codebase and methodological approaches may evolve as we implement and validate the research framework outlined in the literature review.
+**Note**: This is an active research project exploring the intersection of musical diversity and personality psychology. The codebase and methodological approaches continue to evolve as we validate findings about cross-cultural musical preferences and psychological patterns.

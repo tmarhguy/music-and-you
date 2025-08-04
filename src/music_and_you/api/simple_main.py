@@ -8,7 +8,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 import logging
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 import time
 import os
 import secrets
@@ -551,14 +551,25 @@ async def analyze_personality(request: PersonalityAnalysisRequest):
                 "user_id": user_id,
                 "personality_scores": personality_scores,
                 "insights": insights,
-                "confidence": calculate_analysis_confidence(features, len(all_tracks)),
+                "confidence": calculate_analysis_confidence(
+                    features, 
+                    track_count=len(all_tracks),
+                    audio_feature_count=len(audio_features) if not audio_features.empty else 0
+                ),
                 "data_summary": {
                     "total_tracks_analyzed": len(all_tracks),
-                    "audio_features_available": len(audio_features),
-                    "analysis_features": len(features)
+                    "audio_features_available": len(audio_features) if not audio_features.empty else 0,
+                    "analysis_features": len(features),
+                    "feature_categories": {
+                        "acoustic": len([k for k in features.keys() if 'acoustic' in k or any(af in k for af in ['energy', 'valence', 'danceability'])]),
+                        "temporal": len([k for k in features.keys() if 'temporal' in k]),
+                        "behavioral": len([k for k in features.keys() if 'behavioral' in k or 'diversity' in k]),
+                        "advanced": len([k for k in features.keys() if any(af in k for af in ['instrumentalness', 'speechiness', 'liveness'])])
+                    }
                 },
                 "analysis_timestamp": time.time(),
-                "data_source": "spotify_real_data",
+                "data_source": "spotify_enhanced_analysis",
+                "model_version": "advanced_psychology_v2.0",
                 "status": "completed"
             }
             
@@ -650,8 +661,8 @@ async def general_exception_handler(request, exc):
 # Helper functions for personality analysis
 def analyze_music_personality(features: Dict[str, float], tracks_df, audio_features_df) -> Dict[str, float]:
     """
-    Analyze personality traits based on extracted music features.
-    This is a simplified analysis based on music psychology research.
+    Advanced personality trait analysis based on music psychology research.
+    Incorporates findings from Rentfrow & Gosling, Greenberg et al., and other studies.
     """
     try:
         import pandas as pd
@@ -660,7 +671,7 @@ def analyze_music_personality(features: Dict[str, float], tracks_df, audio_featu
         if not features or len(features) == 0:
             return get_default_personality_scores()
         
-        # Initialize scores
+        # Initialize scores with neutral baseline
         personality_scores = {
             "openness": 0.5,
             "conscientiousness": 0.5,
@@ -669,124 +680,525 @@ def analyze_music_personality(features: Dict[str, float], tracks_df, audio_featu
             "neuroticism": 0.5
         }
         
-        # Analyze based on available features
+        # Get comprehensive features for analysis
+        audio_stats = _analyze_audio_features(audio_features_df) if not audio_features_df.empty else {}
+        genre_stats = _analyze_genre_patterns(tracks_df) if not tracks_df.empty else {}
+        temporal_stats = _analyze_temporal_patterns(features)
         
-        # Openness - variety and complexity
+        # OPENNESS TO EXPERIENCE
+        # Research: Correlated with sophisticated, complex, diverse music
+        openness_indicators = []
+        
+        # Genre diversity (strongest predictor)
         if 'genre_diversity' in features:
-            personality_scores["openness"] = min(0.9, max(0.1, features['genre_diversity']))
+            openness_indicators.append(min(0.95, features['genre_diversity'] * 1.2))
+        elif len(genre_stats.get('unique_genres', [])) > 0:
+            diversity = min(0.95, len(genre_stats['unique_genres']) / 10)
+            openness_indicators.append(diversity)
+            
+        # Artist diversity
         if 'artist_diversity' in features:
-            diversity_factor = features['artist_diversity']
-            personality_scores["openness"] = (personality_scores["openness"] + diversity_factor) / 2
+            openness_indicators.append(features['artist_diversity'])
             
-        # Extraversion - energy and social aspects
-        if 'avg_energy' in features:
-            personality_scores["extraversion"] = features['avg_energy']
-        if 'avg_danceability' in features:
-            dance_factor = features['avg_danceability']
-            personality_scores["extraversion"] = (personality_scores["extraversion"] + dance_factor) / 2
-            
-        # Conscientiousness - listening patterns
-        if 'listening_regularity' in features:
-            personality_scores["conscientiousness"] = features['listening_regularity']
-        if 'completion_rate' in features:
-            completion = features['completion_rate']
-            personality_scores["conscientiousness"] = (personality_scores["conscientiousness"] + completion) / 2
-            
-        # Agreeableness - positive valence and harmony
-        if 'avg_valence' in features:
-            personality_scores["agreeableness"] = features['avg_valence']
+        # Musical sophistication indicators
+        if 'avg_instrumentalness' in features:
+            openness_indicators.append(features['avg_instrumentalness'] * 0.8)
         if 'avg_acousticness' in features:
-            acoustic_factor = features['avg_acousticness'] * 0.7 + 0.3  # Bias toward agreeableness
-            personality_scores["agreeableness"] = (personality_scores["agreeableness"] + acoustic_factor) / 2
+            openness_indicators.append(features['avg_acousticness'] * 0.6)
             
-        # Neuroticism (inverted from emotional stability)
+        # Complex rhythms and unconventional structures
+        if audio_stats.get('tempo_variance', 0) > 0.3:
+            openness_indicators.append(0.7)
+        if audio_stats.get('time_signature_variety', 0) > 0.2:
+            openness_indicators.append(0.8)
+            
+        if openness_indicators:
+            personality_scores["openness"] = np.mean(openness_indicators)
+        
+        # EXTRAVERSION
+        # Research: Correlated with energetic, rhythmic, danceable music
+        extraversion_indicators = []
+        
+        # Energy and danceability (strongest predictors)
+        if 'avg_energy' in features:
+            extraversion_indicators.append(features['avg_energy'])
+        if 'avg_danceability' in features:
+            extraversion_indicators.append(features['avg_danceability'])
+            
+        # Loudness preference
+        if 'avg_loudness' in features:
+            # Normalize loudness to 0-1 scale (typical range -60 to 0 dB)
+            loudness_norm = min(1.0, max(0.0, (features['avg_loudness'] + 60) / 60))
+            extraversion_indicators.append(loudness_norm)
+            
+        # Social music preferences (explicit, popular)
+        if 'avg_popularity' in features:
+            pop_factor = features['avg_popularity'] / 100
+            extraversion_indicators.append(pop_factor * 0.8)
+            
+        # Tempo preferences
+        if audio_stats.get('avg_tempo', 0) > 120:
+            tempo_factor = min(0.9, (audio_stats['avg_tempo'] - 60) / 140)
+            extraversion_indicators.append(tempo_factor)
+            
+        if extraversion_indicators:
+            personality_scores["extraversion"] = np.mean(extraversion_indicators)
+        
+        # CONSCIENTIOUSNESS  
+        # Research: Correlated with consistent patterns, completion behavior
+        conscientiousness_indicators = []
+        
+        # Listening regularity and completion
+        if 'listening_regularity' in features:
+            conscientiousness_indicators.append(features['listening_regularity'])
+        if 'completion_rate' in features:
+            conscientiousness_indicators.append(features['completion_rate'])
+            
+        # Preference for structure and organization
+        if temporal_stats.get('routine_strength', 0) > 0.5:
+            conscientiousness_indicators.append(temporal_stats['routine_strength'])
+            
+        # Lower skip rates indicate persistence
+        if 'skip_rate' in features:
+            conscientiousness_indicators.append(1.0 - features['skip_rate'])
+            
+        # Preference for established, non-experimental music
+        if audio_stats.get('mainstream_preference', 0) > 0.5:
+            conscientiousness_indicators.append(audio_stats['mainstream_preference'])
+            
+        if conscientiousness_indicators:
+            personality_scores["conscientiousness"] = np.mean(conscientiousness_indicators)
+        
+        # AGREEABLENESS
+        # Research: Correlated with positive, harmonious, prosocial music
+        agreeableness_indicators = []
+        
+        # Positive valence (strongest predictor)
         if 'avg_valence' in features:
-            # Higher valence = lower neuroticism
-            personality_scores["neuroticism"] = 1.0 - features['avg_valence']
-        if 'tempo_variability' in features:
-            # Higher tempo variability might indicate more neuroticism
-            tempo_factor = min(0.8, features['tempo_variability'])
-            personality_scores["neuroticism"] = (personality_scores["neuroticism"] + tempo_factor) / 2
+            agreeableness_indicators.append(features['avg_valence'])
             
-        # Normalize scores to [0.1, 0.9] range
+        # Preference for acoustic, warm sounds
+        if 'avg_acousticness' in features:
+            agreeableness_indicators.append(features['avg_acousticness'] * 0.8)
+            
+        # Lower preference for aggressive music
+        if audio_stats.get('aggressive_music_ratio', 0) < 0.3:
+            agreeableness_indicators.append(0.7)
+            
+        # Collaborative and social music behavior
+        if 'social_sharing_tendency' in features:
+            agreeableness_indicators.append(features['social_sharing_tendency'])
+            
+        # Preference for major keys and consonant harmonies
+        if audio_stats.get('major_key_preference', 0) > 0.6:
+            agreeableness_indicators.append(0.75)
+            
+        if agreeableness_indicators:
+            personality_scores["agreeableness"] = np.mean(agreeableness_indicators)
+        
+        # NEUROTICISM (Emotional Stability - inverted)
+        # Research: Correlated with intense, emotional, variable music
+        neuroticism_indicators = []
+        
+        # Emotional intensity and instability
+        if 'avg_valence' in features:
+            # Lower valence suggests higher neuroticism
+            neuroticism_indicators.append(1.0 - features['avg_valence'])
+            
+        # Preference for intense, dramatic music
+        if 'avg_energy' in features and features['avg_energy'] > 0.8:
+            neuroticism_indicators.append(0.7)
+            
+        # Mood variability in music choices
+        if audio_stats.get('valence_variance', 0) > 0.3:
+            neuroticism_indicators.append(0.6)
+        if audio_stats.get('energy_variance', 0) > 0.3:
+            neuroticism_indicators.append(0.6)
+            
+        # Preference for minor keys and dissonance
+        if audio_stats.get('minor_key_preference', 0) > 0.6:
+            neuroticism_indicators.append(0.7)
+            
+        # Irregular listening patterns
+        if temporal_stats.get('pattern_consistency', 1.0) < 0.5:
+            neuroticism_indicators.append(0.6)
+            
+        if neuroticism_indicators:
+            personality_scores["neuroticism"] = np.mean(neuroticism_indicators)
+        
+        # Apply research-based adjustments and bounds
+        personality_scores = _apply_psychological_constraints(personality_scores, features)
+        
+        # Ensure realistic score distribution (avoid extreme values)
         for trait in personality_scores:
-            personality_scores[trait] = max(0.1, min(0.9, personality_scores[trait]))
+            personality_scores[trait] = max(0.15, min(0.85, personality_scores[trait]))
             
         return personality_scores
         
     except Exception as e:
-        logger.error(f"Error in personality analysis: {e}")
+        logger.error(f"Error in advanced personality analysis: {e}")
         return get_default_personality_scores()
 
 
+def _analyze_audio_features(audio_features_df) -> Dict[str, float]:
+    """Extract detailed statistics from audio features."""
+    stats = {}
+    
+    if audio_features_df.empty:
+        return stats
+    
+    try:
+        # Basic statistics
+        for feature in ['energy', 'valence', 'danceability', 'acousticness', 'instrumentalness', 'liveness', 'speechiness']:
+            if feature in audio_features_df.columns:
+                stats[f'avg_{feature}'] = audio_features_df[feature].mean()
+                stats[f'{feature}_variance'] = audio_features_df[feature].var()
+        
+        # Tempo analysis
+        if 'tempo' in audio_features_df.columns:
+            stats['avg_tempo'] = audio_features_df['tempo'].mean()
+            stats['tempo_variance'] = audio_features_df['tempo'].var() / 1000  # Normalize
+        
+        # Loudness analysis
+        if 'loudness' in audio_features_df.columns:
+            stats['avg_loudness'] = audio_features_df['loudness'].mean()
+            
+        # Key and mode analysis
+        if 'mode' in audio_features_df.columns:
+            stats['major_key_preference'] = audio_features_df['mode'].mean()
+            stats['minor_key_preference'] = 1.0 - stats['major_key_preference']
+        
+        # Time signature variety
+        if 'time_signature' in audio_features_df.columns:
+            unique_signatures = audio_features_df['time_signature'].nunique()
+            stats['time_signature_variety'] = min(1.0, unique_signatures / 5)
+        
+        # Musical sophistication indicators
+        if 'instrumentalness' in audio_features_df.columns and 'acousticness' in audio_features_df.columns:
+            sophisticated_ratio = ((audio_features_df['instrumentalness'] > 0.5) | 
+                                 (audio_features_df['acousticness'] > 0.7)).mean()
+            stats['sophistication_ratio'] = sophisticated_ratio
+        
+        # Aggressive music detection
+        if all(col in audio_features_df.columns for col in ['energy', 'loudness', 'valence']):
+            aggressive_mask = ((audio_features_df['energy'] > 0.8) & 
+                             (audio_features_df['loudness'] > -5) & 
+                             (audio_features_df['valence'] < 0.4))
+            stats['aggressive_music_ratio'] = aggressive_mask.mean()
+        
+        # Mainstream vs. niche preferences
+        if 'popularity' in audio_features_df.columns:
+            stats['avg_popularity'] = audio_features_df['popularity'].mean()
+            stats['mainstream_preference'] = (audio_features_df['popularity'] > 70).mean()
+            
+    except Exception as e:
+        logger.error(f"Error analyzing audio features: {e}")
+    
+    return stats
+
+
+def _analyze_genre_patterns(tracks_df) -> Dict[str, Any]:
+    """Analyze genre diversity and patterns."""
+    stats = {}
+    
+    if tracks_df.empty:
+        return stats
+    
+    try:
+        # Extract genres from track data (this would need to be enhanced with real genre data)
+        # For now, use artist diversity as a proxy
+        if 'artist_name' in tracks_df.columns:
+            unique_artists = tracks_df['artist_name'].nunique()
+            total_tracks = len(tracks_df)
+            stats['artist_diversity'] = min(1.0, unique_artists / total_tracks)
+            stats['unique_artists'] = unique_artists
+        
+        # Album diversity
+        if 'album_name' in tracks_df.columns:
+            unique_albums = tracks_df['album_name'].nunique()
+            stats['album_diversity'] = min(1.0, unique_albums / len(tracks_df))
+            
+        # Placeholder for genre analysis (would be enhanced with real genre classification)
+        stats['unique_genres'] = []  # Would be populated with actual genre data
+        stats['genre_diversity'] = stats.get('artist_diversity', 0.5)  # Proxy
+        
+    except Exception as e:
+        logger.error(f"Error analyzing genre patterns: {e}")
+        
+    return stats
+
+
+def _analyze_temporal_patterns(features: Dict[str, float]) -> Dict[str, float]:
+    """Extract temporal listening pattern statistics."""
+    stats = {}
+    
+    # Routine strength (consistency of listening times)
+    if 'temporal_peak_hour_ratio' in features:
+        stats['routine_strength'] = features['temporal_peak_hour_ratio']
+    
+    # Pattern consistency
+    temporal_features = [k for k in features.keys() if k.startswith('temporal_')]
+    if temporal_features:
+        # Higher variance in temporal patterns suggests less consistency
+        temporal_values = [features[k] for k in temporal_features if isinstance(features[k], (int, float))]
+        if temporal_values:
+            stats['pattern_consistency'] = 1.0 - (np.var(temporal_values) / (np.mean(temporal_values) + 0.001))
+            stats['pattern_consistency'] = max(0.0, min(1.0, stats['pattern_consistency']))
+    
+    return stats
+
+
+def _apply_psychological_constraints(scores: Dict[str, float], features: Dict[str, float]) -> Dict[str, float]:
+    """Apply psychological research constraints and correlations."""
+    
+    # Research-based trait correlations
+    # Openness and Extraversion often correlate positively
+    if scores['openness'] > 0.7 and scores['extraversion'] < 0.3:
+        scores['extraversion'] = min(0.6, scores['extraversion'] + 0.2)
+    
+    # High Conscientiousness typically correlates with lower Neuroticism
+    if scores['conscientiousness'] > 0.7:
+        scores['neuroticism'] = max(0.2, scores['neuroticism'] - 0.15)
+    
+    # High Agreeableness typically correlates with lower Neuroticism
+    if scores['agreeableness'] > 0.7:
+        scores['neuroticism'] = max(0.2, scores['neuroticism'] - 0.1)
+    
+    # Extreme combinations adjustment
+    for trait in scores:
+        # Prevent unrealistic extreme scores unless strongly supported
+        if scores[trait] > 0.8:
+            confidence_factors = len([k for k in features.keys() if trait.split('_')[0] in k])
+            if confidence_factors < 3:  # Reduce extreme scores with low evidence
+                scores[trait] = min(0.75, scores[trait])
+    
+    return scores
+
+
 def generate_personality_insights(personality_scores: Dict[str, float], features: Dict[str, float]) -> List[str]:
-    """Generate human-readable insights based on personality scores."""
+    """Generate sophisticated, research-based personality insights."""
     insights = []
     
-    # Openness insights
+    # Enhanced Openness insights
     openness = personality_scores.get("openness", 0.5)
-    if openness > 0.7:
-        insights.append("🎵 Your diverse music taste suggests high openness to new experiences and creativity.")
+    if openness > 0.75:
+        insights.append("🎵 Your incredibly diverse music taste reveals exceptional openness to experience. You likely seek novelty, appreciate complexity, and embrace unconventional artistic expressions. Research suggests this correlates with creativity, intellectual curiosity, and aesthetic sensitivity.")
+    elif openness > 0.6:
+        insights.append("� Your varied musical preferences indicate strong openness to new experiences. You probably enjoy exploring different genres and artists, suggesting creative thinking and adaptability in other life areas.")
     elif openness < 0.3:
-        insights.append("🎵 Your consistent music preferences indicate a preference for familiar and reliable experiences.")
+        insights.append("� Your focused musical preferences suggest you value consistency and familiarity. This often correlates with practical thinking, attention to detail, and preference for proven approaches over experimental ones.")
     else:
-        insights.append("🎵 You have a balanced approach to music discovery, enjoying both familiar and new sounds.")
+        insights.append("⚖️ You balance musical exploration with familiar favorites, indicating moderate openness. You're likely selective about new experiences, preferring quality over novelty.")
     
-    # Extraversion insights  
+    # Enhanced Extraversion insights  
     extraversion = personality_scores.get("extraversion", 0.5)
-    if extraversion > 0.7:
-        insights.append("🎉 Your preference for energetic, danceable music suggests an outgoing and social personality.")
+    if extraversion > 0.75:
+        insights.append("🎉 Your preference for high-energy, danceable music strongly suggests extraversion. You likely thrive in social situations, seek stimulation, and express emotions openly. Your music choices reflect a dynamic, outgoing personality.")
+    elif extraversion > 0.6:
+        insights.append("🎵 Your energetic music preferences indicate moderate extraversion. You probably enjoy social activities and tend to be optimistic, though you also appreciate quieter moments.")
     elif extraversion < 0.3:
-        insights.append("🎧 Your taste for calmer, more introspective music indicates a more reserved and thoughtful nature.")
+        insights.append("🎧 Your taste for calmer, introspective music suggests introversion. You likely prefer deeper conversations, need solitude to recharge, and think carefully before speaking. This isn't shyness - it's a preference for depth over breadth in social interactions.")
     else:
-        insights.append("⚖️ Your music choices reflect a balanced social energy - comfortable in both quiet and lively settings.")
+        insights.append("🌓 Your mixed energy preferences suggest ambiversion - a balance between introverted and extraverted tendencies. You're adaptable to both social and solitary situations.")
     
-    # Conscientiousness insights
+    # Enhanced Conscientiousness insights
     conscientiousness = personality_scores.get("conscientiousness", 0.5)
-    if conscientiousness > 0.7:
-        insights.append("📋 Your organized listening patterns suggest strong self-discipline and attention to detail.")
+    if conscientiousness > 0.75:
+        insights.append("📋 Your highly organized listening patterns reveal strong conscientiousness. You likely excel at planning, meeting deadlines, and maintaining routines. Research links this trait to academic and career success through self-discipline and goal persistence.")
+    elif conscientiousness > 0.6:
+        insights.append("🎯 Your structured approach to music consumption suggests good self-control and organization. You probably balance planning with flexibility, and tend to follow through on commitments.")
     elif conscientiousness < 0.3:
-        insights.append("🌊 Your spontaneous music listening style indicates flexibility and adaptability.")
+        insights.append("🌊 Your spontaneous music listening style indicates flexibility and adaptability. You likely prefer to 'go with the flow,' value creativity over rigid structure, and may work best under pressure rather than strict schedules.")
     else:
-        insights.append("🎯 You show a balanced approach to structure, being both organized and spontaneous with music.")
+        insights.append("⚡ You show balanced conscientiousness - organized when needed, flexible when appropriate. This adaptability serves you well in varied situations.")
     
-    # Agreeableness insights
+    # Enhanced Agreeableness insights
     agreeableness = personality_scores.get("agreeableness", 0.5)
-    if agreeableness > 0.7:
-        insights.append("🤝 Your preference for harmonious, positive music suggests a cooperative and trusting nature.")
+    if agreeableness > 0.75:
+        insights.append("🤝 Your strong preference for positive, harmonious music indicates high agreeableness. You likely prioritize cooperation, trust others easily, and seek to maintain group harmony. This trait often leads to strong relationships and effective teamwork.")
+    elif agreeableness > 0.6:
+        insights.append("💫 Your preference for uplifting music suggests you value harmony and positive relationships. You're probably empathetic and considerate, though you can assert yourself when necessary.")
     elif agreeableness < 0.3:
-        insights.append("💪 Your music choices indicate independence and a willingness to challenge conventions.")
+        insights.append("💪 Your taste for more intense or unconventional music suggests independence and critical thinking. You likely value honesty over politeness, think analytically about people and situations, and aren't afraid to challenge popular opinions.")
     else:
-        insights.append("🎭 You appreciate both harmonious and edgier music, showing balanced social perspectives.")
+        insights.append("🎭 Your varied musical moods reflect balanced agreeableness - cooperative when helpful, assertive when necessary. You adapt your social approach to the situation.")
     
-    # Neuroticism insights
+    # Enhanced Neuroticism insights
     neuroticism = personality_scores.get("neuroticism", 0.5)
     if neuroticism > 0.7:
-        insights.append("🌧️ Your music preferences might reflect sensitivity and emotional depth.")
+        insights.append("🌧️ Your music preferences suggest emotional intensity and sensitivity. While this means you may experience stress more acutely, it also indicates deep empathy, artistic appreciation, and authentic emotional expression. Consider using music therapeutically for emotional regulation.")
+    elif neuroticism > 0.55:
+        insights.append("🌤️ Your musical choices indicate moderate emotional sensitivity. You're likely empathetic and responsive to your environment, though this sometimes means feeling overwhelmed. Your emotional awareness is actually a strength for understanding others.")
     elif neuroticism < 0.3:
-        insights.append("☀️ Your upbeat music choices suggest emotional stability and optimism.")
+        insights.append("☀️ Your consistently positive music choices suggest high emotional stability. You likely remain calm under pressure, recover quickly from setbacks, and maintain an optimistic outlook. This resilience is a significant psychological asset.")
     else:
-        insights.append("🌤️ Your varied music mood indicates healthy emotional range and adaptability.")
+        insights.append("⚖️ Your balanced emotional expression through music reflects healthy emotional regulation. You experience the full range of human emotions while maintaining overall stability.")
+    
+    # Add trait combinations and interaction insights
+    _add_trait_interaction_insights(insights, personality_scores, features)
+    
+    # Add research-based behavioral predictions
+    _add_behavioral_predictions(insights, personality_scores)
     
     return insights
 
 
-def calculate_analysis_confidence(features: Dict[str, float], track_count: int) -> float:
-    """Calculate confidence score for the personality analysis."""
-    base_confidence = 0.4
+def _add_trait_interaction_insights(insights: List[str], scores: Dict[str, float], features: Dict[str, float]):
+    """Add insights about trait interactions and combinations."""
     
-    # More tracks = higher confidence
-    track_confidence = min(0.3, track_count / 100 * 0.3)
+    # High Openness + High Extraversion
+    if scores.get('openness', 0.5) > 0.6 and scores.get('extraversion', 0.5) > 0.6:
+        insights.append("🚀 Your combination of openness and extraversion suggests you're an enthusiastic explorer of new musical experiences. You likely share discoveries with others and influence your social circle's musical tastes.")
     
-    # More features = higher confidence  
-    feature_confidence = min(0.2, len(features) / 10 * 0.2)
+    # High Conscientiousness + Low Neuroticism
+    if scores.get('conscientiousness', 0.5) > 0.6 and scores.get('neuroticism', 0.5) < 0.4:
+        insights.append("🏆 Your organized listening habits combined with emotional stability suggest excellent self-regulation. This combination often predicts success in goal achievement and stress management.")
     
-    # Bonus for key features
-    key_features = ['avg_energy', 'avg_valence', 'genre_diversity', 'avg_danceability']
-    key_feature_bonus = sum(0.025 for feature in key_features if feature in features)
+    # High Agreeableness + High Extraversion
+    if scores.get('agreeableness', 0.5) > 0.6 and scores.get('extraversion', 0.5) > 0.6:
+        insights.append("🤗 Your social and harmonious music preferences indicate you're likely a positive influence in group settings. You probably excel at bringing people together through shared musical experiences.")
     
-    total_confidence = base_confidence + track_confidence + feature_confidence + key_feature_bonus
-    return min(0.95, max(0.3, total_confidence))
+    # Low Agreeableness + High Openness
+    if scores.get('agreeableness', 0.5) < 0.4 and scores.get('openness', 0.5) > 0.6:
+        insights.append("� Your appreciation for diverse, possibly challenging music combined with independent thinking suggests you're an authentic individual who values artistic integrity over popularity.")
+
+
+def _add_behavioral_predictions(insights: List[str], scores: Dict[str, float]):
+    """Add research-based behavioral predictions."""
+    
+    # Based on music psychology research findings
+    if scores.get('openness', 0.5) > 0.7:
+        insights.append("📚 Research suggests people with your musical openness often excel in creative fields, adapt well to change, and may prefer liberal political views. You might enjoy travel, diverse cuisines, and intellectual conversations.")
+    
+    if scores.get('extraversion', 0.5) > 0.7:
+        insights.append("🎪 Your energetic music preferences align with research showing extraverts often prefer upbeat environments, seek social stimulation, and may work well in team-oriented or leadership roles.")
+    
+    if scores.get('conscientiousness', 0.5) > 0.7:
+        insights.append("📈 Studies link your organized listening patterns to success in academic and professional settings. You probably maintain good health habits and financial planning.")
+    
+    if scores.get('agreeableness', 0.5) > 0.7:
+        insights.append("🌱 Your preference for harmonious music correlates with research on helping behavior, successful long-term relationships, and collaborative work environments.")
+    
+    if scores.get('neuroticism', 0.5) < 0.3:
+        insights.append("🧘 Your emotionally stable music choices align with research on resilience, life satisfaction, and effective coping strategies during challenging times.")
+
+
+def calculate_analysis_confidence(features: Dict[str, float], track_count: int, audio_feature_count: int = 0) -> float:
+    """
+    Calculate sophisticated confidence score for personality analysis.
+    Based on data quality, quantity, and feature richness.
+    """
+    confidence_factors = []
+    
+    # 1. Data Quantity Score (0-0.25)
+    if track_count >= 500:
+        quantity_score = 0.25
+    elif track_count >= 200:
+        quantity_score = 0.20
+    elif track_count >= 100:
+        quantity_score = 0.15
+    elif track_count >= 50:
+        quantity_score = 0.10
+    else:
+        quantity_score = max(0.05, track_count / 500 * 0.25)
+    confidence_factors.append(("data_quantity", quantity_score))
+    
+    # 2. Audio Features Quality (0-0.20)
+    if audio_feature_count > 0:
+        audio_ratio = min(1.0, audio_feature_count / track_count)
+        audio_score = audio_ratio * 0.20
+    else:
+        audio_score = 0.0
+    confidence_factors.append(("audio_features", audio_score))
+    
+    # 3. Feature Diversity Score (0-0.20)
+    feature_categories = {
+        'acoustic': ['avg_energy', 'avg_valence', 'avg_danceability', 'avg_acousticness'],
+        'temporal': ['temporal_peak_hour', 'temporal_listening_consistency'],
+        'behavioral': ['artist_diversity', 'genre_diversity', 'completion_rate'],
+        'advanced': ['instrumentalness', 'speechiness', 'liveness', 'loudness']
+    }
+    
+    category_scores = []
+    for category, category_features in feature_categories.items():
+        available_features = sum(1 for f in category_features if f in features)
+        category_score = available_features / len(category_features)
+        category_scores.append(category_score)
+    
+    diversity_score = np.mean(category_scores) * 0.20
+    confidence_factors.append(("feature_diversity", diversity_score))
+    
+    # 4. Data Consistency Score (0-0.15)
+    consistency_indicators = []
+    
+    # Check for realistic feature ranges
+    if 'avg_energy' in features:
+        if 0.0 <= features['avg_energy'] <= 1.0:
+            consistency_indicators.append(1.0)
+        else:
+            consistency_indicators.append(0.5)
+    
+    if 'avg_valence' in features:
+        if 0.0 <= features['avg_valence'] <= 1.0:
+            consistency_indicators.append(1.0)
+        else:
+            consistency_indicators.append(0.5)
+    
+    # Check for feature correlations that make sense
+    if 'avg_energy' in features and 'avg_danceability' in features:
+        correlation = abs(features['avg_energy'] - features['avg_danceability'])
+        if correlation < 0.5:  # Reasonable correlation
+            consistency_indicators.append(1.0)
+        else:
+            consistency_indicators.append(0.7)
+    
+    consistency_score = (np.mean(consistency_indicators) if consistency_indicators else 0.5) * 0.15
+    confidence_factors.append(("data_consistency", consistency_score))
+    
+    # 5. Analysis Sophistication Score (0-0.10)
+    sophistication_indicators = []
+    
+    # Bonus for having genre/artist diversity
+    if 'genre_diversity' in features and features['genre_diversity'] > 0:
+        sophistication_indicators.append(features['genre_diversity'])
+    
+    # Bonus for temporal patterns
+    temporal_features = [k for k in features.keys() if 'temporal' in k]
+    if temporal_features:
+        sophistication_indicators.append(min(1.0, len(temporal_features) / 5))
+    
+    # Bonus for advanced audio features
+    advanced_features = ['instrumentalness', 'speechiness', 'liveness']
+    advanced_count = sum(1 for f in advanced_features if f in features)
+    if advanced_count > 0:
+        sophistication_indicators.append(advanced_count / len(advanced_features))
+    
+    sophistication_score = (np.mean(sophistication_indicators) if sophistication_indicators else 0.3) * 0.10
+    confidence_factors.append(("analysis_sophistication", sophistication_score))
+    
+    # 6. Baseline Confidence (0.10)
+    baseline_score = 0.10
+    confidence_factors.append(("baseline", baseline_score))
+    
+    # Calculate total confidence
+    total_confidence = sum(score for _, score in confidence_factors)
+    
+    # Apply penalties for insufficient data
+    if track_count < 20:
+        total_confidence *= 0.7  # Significant penalty for very low data
+    elif track_count < 50:
+        total_confidence *= 0.85  # Moderate penalty
+    
+    if audio_feature_count == 0:
+        total_confidence *= 0.8  # Penalty for no audio features
+    
+    # Ensure confidence is in reasonable range
+    final_confidence = max(0.15, min(0.95, total_confidence))
+    
+    # Log confidence breakdown for debugging
+    logger.info(f"Confidence calculation: {confidence_factors}, final: {final_confidence:.3f}")
+    
+    return final_confidence
 
 
 def simple_personality_analysis(tracks_df, audio_features_df, user_id: str) -> Dict:

@@ -112,8 +112,6 @@ logs/
 *.log
 
 # Config files with secrets
-config/secrets.yaml
-config/credentials.json
 .secrets
 
 # Database

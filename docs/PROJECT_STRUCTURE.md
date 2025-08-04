@@ -53,10 +53,7 @@ music-and-you/
 │       ├── 📄 validation.py        # Data validation
 │       └── 📄 encryption.py        # Privacy/security utilities
 │
-├── 📁 config/                      # Configuration files
-│   ├── 📄 config.yaml              # Main configuration
-│   ├── 📄 .env.example             # Environment variables template
-│   └── 📄 secrets.yaml.example     # Secrets template
+├──  .env.example                 # Environment variables template
 │
 ├── 📁 data/                        # Data storage
 │   ├── 📁 raw/                     # Raw data from APIs
@@ -122,8 +119,8 @@ chmod +x setup_dev.sh
 
 ```bash
 # Copy and configure environment
-cp config/.env.example .env
-cp config/secrets.yaml.example config/secrets.yaml
+cp .env.example .env
+
 
 # Edit with your API credentials
 nano .env

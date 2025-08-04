@@ -1,18 +1,39 @@
-Below is a comprehensive, _publication‑style_ **Literature Review**, a **Concept / Research Map** for what you want to build (showing how each intended contribution sits relative to prior work), and a concise **MVP Build Plan** (adapted from the earlier spec, but tightened and explicitly linked to the literature gaps).
-At the end you will find a **Raw URL Reference List** (full plain URLs as you requested, placed in a code block).
+# Music & You: Research Foundation
 
----
+## Why I Built This Project
 
-## 1. Introduction & Scope
+I listen to a lot of very diverse songs: Rock, Classical, Afrobeats, Hilife (Ghana), Ballads and so on. I found it unusual that almost no one my age, at least another Gen Z shared a taste as diverse as mine. I kept thinking, there might be a correlation between the songs we choose to listen to and our personalities. I researched, and after stumbling upon Spotify's research on personality prediction from music listening, I became fascinated by the question: **Can we really understand someone's personality from their playlist?**
 
-Research over the last two decades has established that individual differences in musical taste relate—though modestly—to stable personality traits, cognitive styles, developmental stages, and psychosocial functioning, while new computational approaches exploit large‑scale listening logs for trait inference and personalized recommendation. ([gosling.psy.utexas.edu][1], [UC Press Online][2], [UC Press Online][2])
-Despite substantial progress (structural models like STOMP and MUSIC, cross‑cultural replications, meta‑analytic syntheses), open problems remain around effect size limits, causal directionality, method heterogeneity, privacy, and ethical deployment of personality‑aware systems. ([gosling.psy.utexas.edu][1], [projects.ori.org][3], [Gwern][4], [ScienceDirect][5], [CiteSeerX][6])
+The idea seemed both intuitive and impossible. We all know that friend who exclusively listens to death metal but is surprisingly gentle, or the classical music lover who's the life of every party. Yet there's something compelling about the connection between music and personality that made me dig deeper.
 
-## 2. Structural Models of Music Preference
+## What the Research Actually Says
 
-Early work distilled surveys of self‑reported genre liking into latent dimensions (e.g., Reflective & Complex; Intense & Rebellious; Upbeat & Conventional; Energetic & Rhythmic) demonstrating internal reliability and short‑term temporal stability. ([gosling.psy.utexas.edu][1], [gosling.psy.utexas.edu][1])
-The later MUSIC model (Mellow, Unpretentious, Sophisticated, Intense, Contemporary) shifted from genre labels toward perceptual/affective attributes of audio excerpts, emphasizing underlying acoustic–psychological properties rather than social genre identities. ([projects.ori.org][3], [PMC][7])
-Replication and extension studies confirm the robustness of the MUSIC factor structure and suggest preference factors are attributable to combinations of auditory and psychological attributes across heterogeneous excerpt sets. ([PMC][7], [ResearchGate][8])
+### The Big Picture
+
+Over the past 20 years, researchers have been trying to crack this code. The honest answer? **It works, but not as well as you might think.**
+
+Studies consistently find correlations between music preferences and personality traits, but they're modest - typically explaining only 10-25% of the variance. That means your Spotify Wrapped isn't a crystal ball, but it's not random either.
+
+### The STOMP and MUSIC Models
+
+The foundational work came from Rentfrow and Gosling, who developed two key frameworks:
+
+**STOMP (Short Test of Music Preferences)** breaks music into dimensions like:
+
+- Reflective & Complex (jazz, classical, folk)
+- Intense & Rebellious (rock, alternative, heavy metal)
+- Upbeat & Conventional (pop, country, soundtrack)
+- Energetic & Rhythmic (rap/hip-hop, soul/funk, electronic)
+
+**MUSIC Model** goes deeper, focusing on the actual sound qualities:
+
+- **Mellow** - soft, relaxing music
+- **Unpretentious** - simple, straightforward songs
+- **Sophisticated** - complex, intelligent music
+- **Intense** - aggressive, energetic tracks
+- **Contemporary** - modern, trendy sounds
+
+What's interesting is that the MUSIC model moves beyond genre labels to focus on how music actually _feels_ - which turns out to be more predictive of personality.
 
 ## 3. Measurement Instruments & Methodological Heterogeneity
 

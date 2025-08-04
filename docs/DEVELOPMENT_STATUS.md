@@ -94,7 +94,7 @@ chmod +x setup_dev.sh
 
 ```bash
 # Get Spotify API credentials from https://developer.spotify.com/
-cp config/.env.example .env
+cp .env.example .env
 # Edit .env with your credentials
 ```
 

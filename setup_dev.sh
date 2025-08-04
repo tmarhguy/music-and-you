@@ -59,7 +59,7 @@ mkdir -p reports/{figures,tables}
 # Copy environment file if it doesn't exist
 if [ ! -f ".env" ]; then
     echo "📋 Creating .env file from template..."
-    cp config/.env.example .env
+    cp .env.example .env
     echo "⚠️  Please edit .env file with your API credentials"
 fi
 

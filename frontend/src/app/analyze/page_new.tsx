@@ -7,8 +7,6 @@ import { AudioDNAChart } from '../../components/AudioDNAChart';
 import { ShareablePersonalityCard } from '../../components/ShareablePersonalityCard';
 import { TraitExplanationCard } from '../../components/TraitExplanationCard';
 import { WhatIfSimulator } from '../../components/WhatIfSimulator';
-import { ChatWidget } from '../../components/ChatWidget';
-import { SmartTooltip, AskAIButton, ContextSuggestions } from '../../components/SmartIntegrations';
 
 interface PersonalityScores {
   openness: number;
@@ -154,7 +152,7 @@ export default function AnalyzePage() {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
-        }
+        },
       });
 
       clearInterval(progressInterval);
@@ -363,47 +361,16 @@ export default function AnalyzePage() {
                 {/* Overview Tab */}
                 {activeTab === 'overview' && (
                   <div className="space-y-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                      <div className="lg:col-span-2">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-xl font-bold text-white">Personality Radar</h3>
-                          <div className="flex items-center gap-2">
-                            <SmartTooltip
-                              type="trait"
-                              title="Personality Analysis"
-                              content="This radar chart shows your Big Five personality traits based on your music listening patterns. Each trait reflects different aspects of your musical preferences."
-                              onAskAI={() => {
-                                const event = new CustomEvent('openChatWithQuestion', { 
-                                  detail: { 
-                                    question: "Explain how my personality radar chart works and what each trait means for my music taste", 
-                                    context: "analyze" 
-                                  } 
-                                });
-                                window.dispatchEvent(event);
-                              }}
-                            />
-                            <AskAIButton
-                              question="What do my personality scores mean and which is most important?"
-                              context="analyze"
-                              variant="secondary"
-                              size="sm"
-                            />
-                          </div>
-                        </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div>
+                        <h3 className="text-xl font-bold text-white mb-4">Personality Radar</h3>
                         <PersonalityRadarChart scores={simulatedScores || analysisResult.personality_scores} />
                       </div>
                       
                       <div>
-                        <h3 className="text-xl font-bold text-white mb-4">Quick Questions</h3>
-                        <ContextSuggestions 
-                          context="analyze" 
-                          personalityScores={analysisResult.personality_scores}
-                          className="mb-6"
-                        />
-                        
                         <h3 className="text-xl font-bold text-white mb-4">Key Insights</h3>
                         <div className="space-y-3">
-                          {analysisResult.insights.slice(0, 3).map((insight, index) => (
+                          {analysisResult.insights.slice(0, 4).map((insight, index) => (
                             <div key={index} className="p-4 bg-white/5 rounded-xl border border-white/10">
                               <p className="text-slate-300">{insight}</p>
                             </div>
@@ -415,31 +382,7 @@ export default function AnalyzePage() {
                     {/* Audio Features Chart */}
                     {analysisResult.audio_features && (
                       <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-xl font-bold text-white">Audio DNA</h3>
-                          <div className="flex items-center gap-2">
-                            <SmartTooltip
-                              type="feature"
-                              title="Audio Features"
-                              content="Your Audio DNA shows the musical characteristics of your favorite songs - like energy, happiness (valence), and danceability. These patterns reveal your personality preferences."
-                              onAskAI={() => {
-                                const event = new CustomEvent('openChatWithQuestion', { 
-                                  detail: { 
-                                    question: "Explain what my audio features mean and how they connect to my personality", 
-                                    context: "analyze" 
-                                  } 
-                                });
-                                window.dispatchEvent(event);
-                              }}
-                            />
-                            <AskAIButton
-                              question="What do these audio features say about my music taste?"
-                              context="analyze"
-                              variant="secondary"
-                              size="sm"
-                            />
-                          </div>
-                        </div>
+                        <h3 className="text-xl font-bold text-white mb-4">Audio DNA</h3>
                         <AudioDNAChart audioFeatures={analysisResult.audio_features || []} />
                       </div>
                     )}
@@ -484,8 +427,8 @@ export default function AnalyzePage() {
                   <div className="space-y-6">
                     <h3 className="text-xl font-bold text-white mb-6">Detailed Trait Analysis</h3>
                     <div className="space-y-6">
-                      {generateTraitExplanations().map((explanationData, index) => (
-                        <TraitExplanationCard key={index} explanation={explanationData} />
+                      {generateTraitExplanations().map((explanation, index) => (
+                        <TraitExplanationCard key={index} {...explanation} />
                       ))}
                     </div>
                   </div>
@@ -519,14 +462,6 @@ export default function AnalyzePage() {
           </div>
         )}
       </div>
-
-      {/* Chat Widget with context and personality scores */}
-      {analysisResult && (
-        <ChatWidget 
-          personalityScores={analysisResult.personality_scores}
-          context="analyze"
-        />
-      )}
     </div>
   );
 }
