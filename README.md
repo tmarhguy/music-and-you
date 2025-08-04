@@ -54,16 +54,13 @@ The application analyzes users' music listening patterns to predict personality 
 
 ## Screenshots
 
-![Landing Page](screenshots/landing.png)
-_Landing page with Spotify authentication_
+![Dashboard and Chat Interface](screenshots/chat.png)
+_Conversational AI explaining personality insights after Authentication_
 
-![Dashboard](screenshots/dashboard.png)
-_Interactive personality analysis dashboard_
+![Analysis Overview](screenshots/overview.png)
+_Musical personality overview_
 
-![Chat Interface](screenshots/chat.png)
-_Conversational AI explaining personality insights_
-
-![Musical Personality Analysis](screenshots/musical-personality.png)
+![Musical Personality Analysis](screenshots/big-five-insights-1.png)
 _Musical personality traits and analysis results_
 
 ## Technology Stack
