@@ -1,8 +1,18 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { ButtonProps } from '@/types';
+import { cn } from '../../lib/utils';
 import { Loader2 } from 'lucide-react';
+
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  loading?: boolean;
+  onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
+  className?: string;
+}
 
 const Button: React.FC<ButtonProps> = ({
   children,
@@ -23,6 +33,7 @@ const Button: React.FC<ButtonProps> = ({
     spotify: 'bg-spotify-500 hover:bg-spotify-600 text-white focus:ring-spotify-500',
     outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50 focus:ring-primary-500',
     ghost: 'text-primary-600 hover:bg-primary-50 focus:ring-primary-500',
+    destructive: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
   };
   
   const sizeClasses = {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChatWidget } from '../components/ChatWidget';
+import { demoUserProfile, isDemoMode, simulateApiDelay } from '../data/demo-data';
 
 interface SpotifyUser {
   display_name?: string;
@@ -20,6 +21,13 @@ export default function HomePage() {
   useEffect(() => {
     // Check if user is already authenticated
     const checkAuth = async () => {
+      // If in demo mode, use demo user
+      if (isDemoMode()) {
+        setUser(demoUserProfile);
+        localStorage.setItem('spotifyUser', JSON.stringify(demoUserProfile));
+        return;
+      }
+
       const userId = localStorage.getItem('spotify_user_id');
       const token = localStorage.getItem('spotify_access_token');
       
@@ -50,6 +58,15 @@ export default function HomePage() {
   const handleSpotifyLogin = async () => {
     console.log('🎵 Spotify login button clicked');
     setIsLoading(true);
+    
+    // If in demo mode, simulate login
+    if (isDemoMode()) {
+      await simulateApiDelay(1500);
+      setUser(demoUserProfile);
+      localStorage.setItem('spotifyUser', JSON.stringify(demoUserProfile));
+      setIsLoading(false);
+      return;
+    }
     
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8003';
@@ -125,6 +142,14 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
+          {isDemoMode() && (
+            <div className="mb-6 inline-flex items-center px-4 py-2 bg-blue-500/20 border border-blue-400/30 rounded-full text-blue-300 text-sm">
+              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              Demo Mode - Try it out with sample data!
+            </div>
+          )}
           <div className="flex items-center justify-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-xl flex items-center justify-center">
               <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -137,8 +162,10 @@ export default function HomePage() {
             Music & You
           </h1>
           <p className="text-xl text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Discover your personality through your music taste. Connect your Spotify account 
-            to get insights about yourself based on your listening habits.
+            {isDemoMode() 
+              ? "Experience personality analysis through music with our interactive demo. See how your musical taste reveals insights about your personality traits."
+              : "Discover your personality through your music taste. Connect your Spotify account to get insights about yourself based on your listening habits."
+            }
           </p>
         </div>
 

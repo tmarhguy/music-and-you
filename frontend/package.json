@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:static": "next build && next export",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
@@ -13,7 +14,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "deploy": "npm run build && touch out/.nojekyll"
   },
   "dependencies": {
     "@headlessui/react": "^2.1.0",

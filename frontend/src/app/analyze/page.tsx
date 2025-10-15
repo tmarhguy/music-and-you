@@ -9,6 +9,7 @@ import { TraitExplanationCard } from '../../components/TraitExplanationCard';
 import { WhatIfSimulator } from '../../components/WhatIfSimulator';
 import { ChatWidget } from '../../components/ChatWidget';
 import { SmartTooltip, AskAIButton, ContextSuggestions } from '../../components/SmartIntegrations';
+import { demoAnalysisResult, isDemoMode, simulateApiDelay } from '../../data/demo-data';
 
 interface PersonalityScores {
   openness: number;
@@ -149,22 +150,34 @@ export default function AnalyzePage() {
         });
       }, 500);
 
-      const response = await fetch('http://127.0.0.1:8003/analyze', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
+      let result;
+      
+      // Check if we're in demo mode
+      if (isDemoMode()) {
+        await simulateApiDelay(3000);
+        clearInterval(progressInterval);
+        setProgress(100);
+        result = demoAnalysisResult;
+      } else {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8003';
+        const response = await fetch(`${apiUrl}/analyze`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+
+        clearInterval(progressInterval);
+        setProgress(100);
+
+        if (!response.ok) {
+          throw new Error(`Analysis failed: ${response.statusText}`);
         }
-      });
 
-      clearInterval(progressInterval);
-      setProgress(100);
-
-      if (!response.ok) {
-        throw new Error(`Analysis failed: ${response.statusText}`);
+        result = await response.json();
       }
 
-      const result = await response.json();
       const enhancedResult = mockEnhanceAnalysisResult(result);
       setAnalysisResult(enhancedResult);
 
