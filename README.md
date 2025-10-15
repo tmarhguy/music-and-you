@@ -123,7 +123,13 @@ music-and-you/
 └── docker/                     # Docker configuration
 ```
 
-## Getting Started
+## 🚀 Quick Start (GitHub Pages Demo)
+
+**Try the live demo**: [https://tmarhguy.github.io/music-and-you](https://tmarhguy.github.io/music-and-you)
+
+The GitHub Pages version runs in demo mode with sample data to showcase the full functionality without requiring Spotify authentication.
+
+## 🛠 Development Setup
 
 ### Prerequisites
 
@@ -138,11 +144,11 @@ music-and-you/
    - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
    - Create a new app
    - Note your Client ID and Client Secret
-   - Add redirect URI: `http://localhost:3002/auth/callback`
+   - Add redirect URI: `http://localhost:3000/auth/callback`
 
-## Installation
+## 📦 Installation
 
-### Backend Setup
+### Frontend Setup (GitHub Pages Compatible)
 
 1. **Clone the repository**:
 
@@ -151,63 +157,52 @@ music-and-you/
    cd music-and-you
    ```
 
-2. **Create and activate virtual environment**:
-
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-3. **Install dependencies**:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configure environment variables**:
-
-   ```bash
-   cp .env.example .env
-   # Edit .env with your Spotify credentials
-   ```
-
-5. **Start the backend server**:
-   ```bash
-   cd src/music_and_you/api
-   python main.py
-   ```
-
-### Frontend Setup
-
-1. **Navigate to frontend directory**:
+2. **Install and run frontend**:
 
    ```bash
    cd frontend
+   npm install
+   npm run dev
    ```
 
-2. **Install dependencies**:
+3. **Build for GitHub Pages**:
 
    ```bash
-   npm install
+   npm run build
    ```
+
+The frontend will be available at `http://localhost:3000`
+
+### Backend Setup (Separate Repository)
+
+For the full application with real Spotify integration, you'll need the backend API:
+
+1. **Clone the backend repository**:
+
+   ```bash
+   git clone https://github.com/tmarhguy/music-and-you-backend.git
+   cd music-and-you-backend
+   ```
+
+2. **Follow the backend setup instructions** in the backend repository
 
 3. **Configure environment variables**:
 
    ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your configuration
+   cp env.example .env
+   # Edit .env with your Spotify credentials
    ```
 
-4. **Start the development server**:
+4. **Start the backend server**:
    ```bash
-   npm run dev
+   uvicorn src.music_and_you.api.main:app --reload --port 8000
    ```
 
 The application will be available at:
 
-- Frontend: `http://localhost:3002`
-- Backend API: `http://localhost:8003`
-- API Documentation: `http://localhost:8003/docs`
+- Frontend: `http://localhost:3000` (GitHub Pages compatible)
+- Backend API: `http://localhost:8000` (when running locally)
+- API Documentation: `http://localhost:8000/docs`
 
 ## Usage
 
